@@ -2,7 +2,6 @@
 using System.Net;
 using System.Security.Claims;
 using Content.Server.Database;
-using Content.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using WhitelistJoin = SS14.Admin.Helpers.WhitelistHelper.WhitelistJoin;
 
@@ -29,8 +28,9 @@ public static class SearchHelper
         if (user.IsInRole(Constants.PIIRole) && IPAddress.TryParse(search, out var ip))
             CombineSearch(ref expr, u => u.Address.Equals(ip));
 
-        if (user.IsInRole(Constants.PIIRole) && ImmutableTypedHwid.TryParse(search, out var hwid))
-            CombineSearch(ref expr, u => u.HWId!.Type == hwid.Type && u.HWId.Hwid == hwid.Hwid.ToArray());
+        var hwid = new byte[Constants.HwidLength];
+        if (user.IsInRole(Constants.PIIRole) && Convert.TryFromBase64String(search, hwid, out var len) && len == Constants.HwidLength)
+            CombineSearch(ref expr, u => u.HWId == hwid);
 
         return query.Where(expr);
     }
@@ -55,8 +55,9 @@ public static class SearchHelper
         if (user.IsInRole(Constants.PIIRole) && IPAddress.TryParse(search, out var ip))
             CombineSearch(ref expr, u => EF.Functions.ContainsOrEqual(u.Ban.Address!.Value, ip));
 
-        if (user.IsInRole(Constants.PIIRole) && ImmutableTypedHwid.TryParse(search, out var hwid))
-            CombineSearch(ref expr, u => u.Ban.HWId!.Type == hwid.Type && u.Ban.HWId.Hwid == hwid.Hwid.ToArray());
+        var hwid = new byte[Constants.HwidLength];
+        if (user.IsInRole(Constants.PIIRole) && Convert.TryFromBase64String(search, hwid, out var len) && len == Constants.HwidLength)
+            CombineSearch(ref expr, u => u.Ban.HWId == hwid);
 
         return expr;
     }
@@ -111,8 +112,9 @@ public static class SearchHelper
         if (user.IsInRole(Constants.PIIRole) && IPAddress.TryParse(search, out var ip))
             CombineSearch(ref expr, u => u.LastSeenAddress.Equals(ip));
 
-        if (user.IsInRole(Constants.PIIRole) && ImmutableTypedHwid.TryParse(search, out var hwid))
-            CombineSearch(ref expr, u => u.LastSeenHWId!.Type == hwid.Type && u.LastSeenHWId.Hwid == hwid.Hwid.ToArray());
+        var hwid = new byte[Constants.HwidLength];
+        if (user.IsInRole(Constants.PIIRole) && Convert.TryFromBase64String(search, hwid, out var len) && len == Constants.HwidLength)
+            CombineSearch(ref expr, u => u.LastSeenHWId == hwid);
 
         return query.Where(expr);
     }
